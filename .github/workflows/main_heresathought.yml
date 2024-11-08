@@ -43,6 +43,9 @@ jobs:
       - name: List contents of app_server directory
         run: ls -la '${{ github.workspace }}/app_server'
 
+      - name: List contents of app_server directory
+        run: ls -la '${{ github.workspace }}/app_server/web'
+
       - name: Deploy to Azure Web App 
         uses: azure/webapps-deploy@v2 
         with:
