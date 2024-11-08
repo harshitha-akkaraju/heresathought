@@ -46,4 +46,4 @@ jobs:
           app-name: 'heresathought' 
           slot-name: 'Production'
           publish-profile:  ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_CA506FE5643B4DB2ABE7D26EDB624B0C }}
-          package: '${{ github.workspace }}/build/web'
+          package: '${{ github.workspace }}/app_server/web'
