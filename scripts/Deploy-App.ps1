@@ -1,4 +1,4 @@
-$repoRoot = "C:\Users\hakkaraj\Workspace\heresathought"
+$repoRoot = ""
 $nodeServerPath = "$repoRoot\app_server\server.js"
 
 function Write-Message {
@@ -58,4 +58,5 @@ function Deploy-App {
     Cleanup -Tgt $webAppBuildTmp
 }
 
+# Deploy-App copies the web app build artifacts to the app_server directory and starts the node server locally
 Deploy-App
