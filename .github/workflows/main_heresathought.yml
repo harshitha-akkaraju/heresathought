@@ -34,6 +34,9 @@ jobs:
         working-directory: ./app
         run: flutter build web
 
+      - name: Ensure target directory exists
+        run: mkdir -p ./app_server/web
+
       - name: Move Flutter build files to Node.js server directory
         run: cp -r ./app/build/web/* ./app_server/web/
 
