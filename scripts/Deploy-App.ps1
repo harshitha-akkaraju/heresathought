@@ -1,4 +1,5 @@
-$repoRoot = ""
+$repoRoot = "C:\Users\hakkaraj\Workspace\heresathought"
+$nodeServerPath = "$repoRoot\app_server\server.js"
 
 function Write-Message {
     param (
@@ -19,7 +20,7 @@ if (-Not $repoRoot) {
 }
 
 $webAppBuild = "$repoRoot/app/build/web"
-$webAppBuildTmp = "$repoRoot/app_server/tmp"
+$webAppBuildTmp = "$repoRoot/app_server/"
 
 function Copy-WebApp {
     param (
@@ -51,6 +52,8 @@ function Deploy-App {
     Write-Message -Message "Deploying app..."
 
     Copy-WebApp -Src $webAppBuild -Dst $webAppBuildTmp
+
+    node $nodeServerPath
 
     Cleanup -Tgt $webAppBuildTmp
 }

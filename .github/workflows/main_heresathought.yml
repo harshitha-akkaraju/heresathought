@@ -43,7 +43,7 @@ jobs:
       - name: List contents of app_server directory
         run: ls -la '${{ github.workspace }}/app_server'
 
-      - name: List contents of app_server directory
+      - name: List contents of app_server/web directory
         run: ls -la '${{ github.workspace }}/app_server/web'
 
       - name: Deploy to Azure Web App 
