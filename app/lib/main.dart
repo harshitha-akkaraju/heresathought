@@ -3,38 +3,63 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jiffy/jiffy.dart';
 import 'dart:math' as math;
+import 'package:intl/intl.dart';
 
 void main() {
-  runApp(const MainApp());
-}
-
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => AppState(),
-      child: MaterialApp(
-          title: "Here's a thought",
-          theme: ThemeData(
-            useMaterial3: true,
-            colorScheme:
-                ColorScheme.fromSeed(seedColor: Colors.deepPurpleAccent),
-          ),
-          home: HomePage()),
-    );
-  }
+  runApp(ChangeNotifierProvider(
+      create: (context) => AppState(), child: MainApp()));
 }
 
 class AppState extends ChangeNotifier {
   var current = WordPair.random();
-  var color = Color((math.Random().nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0);
+  var color =
+      Color((math.Random().nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0);
+
+  void updateColor(Color newColor) {
+    color = newColor;
+    notifyListeners();
+  }
 }
 
-class HomePage extends StatelessWidget {
+class MainApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<AppState>();
+    return MaterialApp(
+        title: "Here's a thought",
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(seedColor: appState.color),
+        ),
+        home: HomePage());
+  }
+}
+
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  DateTime? _selectedDate;
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020, 1),
+      lastDate: DateTime(2030, 12),
+    );
+
+    if (picked != null && picked != _selectedDate)
+      setState(() {
+        _selectedDate = picked;
+      });
+  }
+
   String getDate() {
-    return Jiffy.now().format(pattern: 'MMM do yy');
+    return Jiffy.parseFromDateTime(_selectedDate ?? DateTime.now())
+        .format(pattern: 'MMM do yy');
   }
 
   Widget calendarButton(BuildContext context) {
@@ -56,15 +81,15 @@ class HomePage extends StatelessWidget {
                 ),
               ),
             ),
-            Container(
-              alignment: Alignment.topRight,
-              margin: EdgeInsets.all(20),
-              child: Align(
-                alignment: Alignment.topRight,
+            GestureDetector(
+              onTap: () => _selectDate(context),
+              child: Container(
+                margin: EdgeInsets.all(20),
+                padding: EdgeInsets.all(10),
                 child: Icon(
-                  Icons.calendar_view_week_rounded,
-                  size: 70,
+                  Icons.calendar_view_week_outlined,
                   color: appState.color,
+                  size: 45,
                 ),
               ),
             ),
