@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,13 +12,35 @@ void main() {
       create: (context) => AppState(), child: MainApp()));
 }
 
+class Entry {
+  final String text;
+  final DateTime date;
+
+  Entry(this.text, this.date);
+
+  String getEntryTime() {
+    return DateFormat.jm().format(date);
+  }
+}
+
 class AppState extends ChangeNotifier {
-  var current = WordPair.random();
   var color =
       Color((math.Random().nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0);
+  List<Entry> entries = [];
+  String currentText = "";
 
   void updateColor(Color newColor) {
     color = newColor;
+    notifyListeners();
+  }
+
+  void addEntry(String entry) {
+    entries.add(Entry(entry, DateTime.now()));
+    notifyListeners();
+  }
+
+  void updateCurrentText(String newText) {
+    currentText = newText;
     notifyListeners();
   }
 }
@@ -42,6 +66,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   DateTime? _selectedDate;
+  TextEditingController _textController = TextEditingController();
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -51,10 +76,11 @@ class _HomePageState extends State<HomePage> {
       lastDate: DateTime(2030, 12),
     );
 
-    if (picked != null && picked != _selectedDate)
+    if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
       });
+    }
   }
 
   String getDate() {
@@ -62,7 +88,7 @@ class _HomePageState extends State<HomePage> {
         .format(pattern: 'MMM do yy');
   }
 
-  Widget calendarButton(BuildContext context) {
+  Widget displayRibbon(BuildContext context) {
     var appState = context.watch<AppState>();
 
     return Column(
@@ -99,56 +125,100 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget displayEntries(BuildContext context) {
     var appState = context.watch<AppState>();
 
-    return Scaffold(
-      body: Stack(
-        children: <Widget>[
-          Column(
-            children: [calendarButton(context)],
+    if (appState.entries.isEmpty) {
+      return Expanded(
+        child: Center(
+          child: Text(
+            "No entries yet",
+            style: TextStyle(fontSize: 20),
           ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              margin: EdgeInsets.all(10),
-              padding: EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.white,
-                  ),
-                  color: Colors.white,
-                  borderRadius: BorderRadius.all(Radius.circular(20))),
-              height: 60,
-              width: double.infinity,
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                          hintText: "What's on your mind?",
-                          hintStyle: TextStyle(color: Colors.black54),
-                          border: InputBorder.none),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 15,
-                  ),
-                  FloatingActionButton(
-                    onPressed: () {},
-                    backgroundColor: appState.color,
-                    elevation: 0,
-                    child: Icon(
-                      Icons.done,
-                      color: Colors.white,
-                      size: 18,
-                    ),
-                  ),
-                ],
+        ),
+      );
+    }
+
+    return Expanded(
+        child: ListView.builder(
+      itemCount: appState.entries.length,
+      itemBuilder: (context, index) {
+        return Card(
+          margin: EdgeInsets.all(10),
+          child: ListTile(
+            contentPadding: EdgeInsets.all(25),
+            title: Text(appState.entries[index].text),
+            subtitle: Text(appState.entries[index].getEntryTime()),
+          ),
+        );
+      },
+    ));
+  }
+
+  void onTextSubmission(BuildContext context, String value) {
+    var appState = context.watch<AppState>();
+    appState.addEntry(value);
+    _textController.clear();
+  }
+
+  Widget displayTextInput(BuildContext context) {
+    var appState = context.watch<AppState>();
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        margin: EdgeInsets.all(10),
+        padding: EdgeInsets.all(10),
+        decoration: BoxDecoration(
+            border: Border.all(
+              color: Colors.white,
+            ),
+            color: Colors.white,
+            borderRadius: BorderRadius.all(Radius.circular(20))),
+        height: 60,
+        width: double.infinity,
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: TextField(
+                controller: _textController,
+                decoration: InputDecoration(
+                    hintText: "What's on your mind?",
+                    hintStyle: TextStyle(color: Colors.black54),
+                    border: InputBorder.none),
+                onSubmitted: (value) => {
+                  onTextSubmission(context, value),
+                },
               ),
             ),
-          ),
+            SizedBox(
+              width: 15,
+            ),
+            FloatingActionButton(
+              onPressed: () => {
+                // onTextSubmission(context, value),
+              },
+              backgroundColor: appState.color,
+              elevation: 0,
+              child: Icon(
+                Icons.done,
+                color: Colors.white,
+                size: 18,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          displayRibbon(context),
+          displayEntries(context),
+          displayTextInput(context),
         ],
       ),
     );
